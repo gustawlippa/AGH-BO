@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 
+INF=1000000
 
 class City:
     def __init__(self, x, y, z, value):
@@ -12,6 +13,9 @@ class City:
         self.y = y
         self.z = z
         self.value = value
+
+    def __repr__(self):
+        return "X: {}, Y: {}, Z: {:.3}, V: {:.3}".format(self.x, self.y, self.z, self.value)
 
 
 class World:
@@ -23,7 +27,7 @@ class World:
         self.cities = self.populate_world()
         print(self.cities)
 
-        l = lambda x, y: 1 if (x, y) in self.cities else 0
+        l = lambda x, y: 1 if (x, y) in [(c.x, c.y) for c in self.cities] else 0
         plot(size, np.vectorize(l))
 
         self.cities_matrix = self.create_cities_matrix()
@@ -32,12 +36,10 @@ class World:
         x = np.arange(0, self.size)
         y = np.arange(0, self.size)
         X, Y = np.meshgrid(x, y)
-        print(type(X), X, X.shape)
         # TODO placeholder height function
         Z = (X + Y)
         max_z = np.amax(Z)
         Z = Z*height_max/max_z
-        print(Z, type(Z), Z.shape)
         return Z
 
     def create_value_mesh(self, value_max):
@@ -46,11 +48,32 @@ class World:
     def populate_world(self):
         n = self.cities_no
         size = self.size
-        return random.sample([(x, y) for x in range(size) for y in range(size)], n)
+        coords = random.sample([(x, y) for x in range(size) for y in range(size)], n)
+        return [City(x, y, self.height_mesh[x,y], self.value_mesh[x,y]) for (x,y) in coords]
 
     def create_cities_matrix(self):
-        return []
+        n = self.cities_no
+        cities = self.cities
+        matrix = np.zeros([n, n], dtype=tuple)
 
+        # d= [maybe_create_road(c1,c2)  for c1 in self.cities for c2 in self.cities if c1!=c2]
+
+        for x1, c1 in enumerate(cities):
+            for y1, c2 in enumerate(cities):
+                if c1 != c2:
+                    x=x1-1
+                    y=y1-1
+                    matrix[x][y] = maybe_create_road(c1,c2)
+
+
+        return matrix
+
+
+def maybe_create_road(c1,c2):
+    if random.random() > 0.5:
+        return (1, 10)
+    else:
+        return (INF, 0)
 
 def plot(size, z):
     # print(Z, type(Z), Z.shape)
