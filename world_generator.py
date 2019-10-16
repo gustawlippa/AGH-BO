@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 
-INF=1000000
 
 class City:
     def __init__(self, x, y, z, value):
@@ -30,7 +29,12 @@ class World:
         l = lambda x, y: 1 if (x, y) in [(c.x, c.y) for c in self.cities] else 0
         plot(size, np.vectorize(l))
 
-        self.cities_matrix = self.create_cities_matrix()
+        self.price_matrix, self.value_matrix = self.create_roads_matrics()
+
+        print("Price: ", self.price_matrix,"Value: ", self.value_matrix)
+
+        plt.show()
+
 
     def create_height_mesh(self, height_max):
         x = np.arange(0, self.size)
@@ -51,10 +55,11 @@ class World:
         coords = random.sample([(x, y) for x in range(size) for y in range(size)], n)
         return [City(x, y, self.height_mesh[x,y], self.value_mesh[x,y]) for (x,y) in coords]
 
-    def create_cities_matrix(self):
+    def create_roads_matrics(self):
         n = self.cities_no
         cities = self.cities
-        matrix = np.zeros([n, n], dtype=tuple)
+        price_matrix = np.ones([n, n])
+        value_matrix = np.zeros([n, n])
 
         # d= [maybe_create_road(c1,c2)  for c1 in self.cities for c2 in self.cities if c1!=c2]
 
@@ -63,29 +68,39 @@ class World:
                 if c1 != c2:
                     x=x1-1
                     y=y1-1
-                    matrix[x][y] = maybe_create_road(c1,c2)
+                    # implement logic for choosing when to put a road
+                    if random.random() > 0.5:
+                        price_matrix[x][y] = self.get_price(c1, c2)
+                        value_matrix[x][y] = self.get_value(c1, c2)
+        return price_matrix, value_matrix
 
+    def get_price(self, c1, c2):
+        dist = ((c1.x-c2.x)**2+(c1.y-c2.y)**2)**1.0/2
+        price = dist*(c2.z-c1.z)
+        if price <= 0:
+            return dist*0.01
+        else:
+            return price
 
-        return matrix
+    def get_value(self, c1, c2):
+        dist = ((c1.x-c2.x)**2+(c1.y-c2.y)**2)**1.0/2
+        value = dist*abs(c2.value-c1.value)
+        return value
 
-
-def maybe_create_road(c1,c2):
-    if random.random() > 0.5:
-        return (1, 10)
-    else:
-        return (INF, 0)
 
 def plot(size, z):
     # print(Z, type(Z), Z.shape)
 
-    x = np.arange(0, size)
-    y = np.arange(0, size)
+    x = np.arange(0, size, 0.1)
+    y = np.arange(0, size, 0.1)
     X, Y = np.meshgrid(x, y)
     Z = z(X, Y)
     fig = plt.figure()
     ax = fig.gca(projection='3d')
     surf = ax.plot_surface(X, Y, Z,
-                       linewidth=0, antialiased=False)
+                       linewidth=0, antialiased=False, cmap=cm.coolwarm)
+
+    # ax.scatter([3], [3], [1], 'o')
     plt.show()
 
 
