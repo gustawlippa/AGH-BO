@@ -104,10 +104,11 @@ def generate_solutions(start, end, road_matrix, cost_matrix, value_matrix):
     b_max = bfs(start, end, value_matrix, rich_neighbours)
     b_min = bfs(start, end, cost_matrix, easy_neighbours)
 
-    return [b, b_max, b_min]
+    return [list(x) for x in set(tuple(l) for l in b + b_max + b_min)]
 
 
 def bfs(start, end, matrix, neighbours_fun):
+    results = []
     Q = []
     visited = []
     Q.append([start])
@@ -115,14 +116,14 @@ def bfs(start, end, matrix, neighbours_fun):
         path = Q.pop()
         city = path[-1]
         if city == end:
-            return path
+            results.append(path)
         elif city not in visited:
             for c in neighbours_fun(city, matrix):
                 new_path = list(path)
                 new_path.append(c)
                 Q.append(new_path)
             visited.append(city)
-    return []
+    return results
 
 
 def neighbours(start, matrix):
