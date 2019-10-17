@@ -24,7 +24,7 @@ class World:
         self.height_mesh = self.create_height_mesh()
         self.value_mesh = self.create_value_mesh()
         self.cities = self.populate_world()
-        print(self.cities)
+        print("Cities coords:\n", self.cities)
 
         #  l = lambda x, y: 1 if (x, y) in [(c.x, c.y) for c in self.cities] else 0
         #  plot(size, np.vectorize(l))
@@ -36,7 +36,7 @@ class World:
         print("Value: \n", self.value_matrix)
 
         sols = generate_solutions(0, cities_no-1, self.road_matrix, self.cost_matrix, self.value_matrix)
-        print(sols)
+        print("Solutions:\n", len(sols))
 
         plt.show()
 
@@ -104,25 +104,26 @@ def generate_solutions(start, end, road_matrix, cost_matrix, value_matrix):
     b_max = bfs(start, end, value_matrix, rich_neighbours)
     b_min = bfs(start, end, cost_matrix, easy_neighbours)
 
-    return [list(x) for x in set(tuple(l) for l in b + b_max + b_min)]
+    return [x for x in set(tuple(l) for l in b + b_max + b_min)]
 
 
 def bfs(start, end, matrix, neighbours_fun):
     results = []
     Q = []
-    visited = []
     Q.append([start])
     while Q:
         path = Q.pop()
         city = path[-1]
         if city == end:
             results.append(path)
-        elif city not in visited:
+            if len(results) == 10:
+                return results
+        else:
             for c in neighbours_fun(city, matrix):
-                new_path = list(path)
-                new_path.append(c)
-                Q.append(new_path)
-            visited.append(city)
+                if c not in path:
+                    new_path = list(path)
+                    new_path.append(c)
+                    Q.append(new_path)
     return results
 
 
@@ -145,7 +146,6 @@ def easy_neighbours(start, cost_matrix):
 
 
 def plot(size, z):
-    # print(Z, type(Z), Z.shape)
 
     x = np.arange(0, size, 0.1)
     y = np.arange(0, size, 0.1)
@@ -160,7 +160,7 @@ def plot(size, z):
     plt.show()
 
 
-def main(cities_no=10, world_size=10, world_height=100):
+def main():
 
     w = World(10, 10)
 
