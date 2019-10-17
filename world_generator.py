@@ -4,7 +4,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
-
+import itertools
 
 class City:
     def __init__(self, x, y, z, value):
@@ -36,7 +36,7 @@ class World:
         print("Value: \n", self.value_matrix)
 
         sols = generate_solutions(0, cities_no-1, self.road_matrix, self.cost_matrix, self.value_matrix)
-        print("Solutions:\n", len(sols))
+        print("Solutions:\n", len(sols), sols)
 
         plt.show()
 
@@ -74,15 +74,9 @@ class World:
                     x = x1-1
                     y = y1-1
 
-                    dist_to_centre = ((c1.x - self.size/2) ** 2 + (c1.y - self.size/2) ** 2) ** (1.0 / 2)
-                    radius = (dist_to_centre / 2) + (0.35 * self.size)  # the range of a city is ~40% of a total space
-                    # print(radius, dist_to_centre, c1.x, c1.y)
-                    city_dist = ((c1.x - c2.x) ** 2 + (c1.y - c2.y) ** 2) ** (1.0 / 2)
-
-                    if city_dist < radius:
-                        road_matrix[x][y] = 1
-                        cost_matrix[x][y] = self.get_cost(c1, c2)
-                        value_matrix[x][y] = self.get_value(c1, c2)
+                    road_matrix[x][y] = 1
+                    cost_matrix[x][y] = self.get_cost(c1, c2)
+                    value_matrix[x][y] = self.get_value(c1, c2)
         return road_matrix, cost_matrix, value_matrix
 
     def get_cost(self, c1, c2):
@@ -103,8 +97,19 @@ def generate_solutions(start, end, road_matrix, cost_matrix, value_matrix):
     b = bfs(start, end, road_matrix, neighbours)
     b_max = bfs(start, end, value_matrix, rich_neighbours)
     b_min = bfs(start, end, cost_matrix, easy_neighbours)
+    #
+    # return [x for x in set(tuple(l) for l in b + b_max + b_min)]
+    l = [random_sol(start, end, len(road_matrix[start])) for i in range(10)]
+    return l+[b]+[b_min]+[b_max]
 
-    return [x for x in set(tuple(l) for l in b + b_max + b_min)]
+
+def random_sol(start, end, n):
+    l = list(range(n))
+    random.shuffle(l)
+    i, j = l.index(start), l.index(end)
+    l[0], l[i] = l[i], l[0]
+    l[-1], l[j] = l[j], l[-1]
+    return l
 
 
 def bfs(start, end, matrix, neighbours_fun):
@@ -114,25 +119,26 @@ def bfs(start, end, matrix, neighbours_fun):
     while Q:
         path = Q.pop()
         city = path[-1]
-        if city == end:
-            results.append(path)
-            if len(results) == 10:
-                return results
+        if city == end and len(path) == len(matrix[start]):
+            return path
+            # results.append(path)
+            # if len(results) == 10:
+            #     return results
         else:
             for c in neighbours_fun(city, matrix):
                 if c not in path:
                     new_path = list(path)
                     new_path.append(c)
                     Q.append(new_path)
-    return results
+    return []
 
 
 def neighbours(start, matrix):
-    return [end for end in range(len(matrix[start])) if matrix[start][end] and start!=end]
+    return [end for end in range(len(matrix[start])) if matrix[start][end] and start != end]
 
 
 def rich_neighbours(start, value_matrix):
-    c = [end for end in range(len(value_matrix[start])) if value_matrix[start][end] and start!=end]
+    c = [end for end in range(len(value_matrix[start])) if value_matrix[start][end] and start != end]
     c.sort(key=lambda x:  value_matrix[start][x])
     # neighbours are pushed onto stack, we want the richest at the end
     return reversed(c)
