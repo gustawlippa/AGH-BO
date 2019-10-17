@@ -4,7 +4,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
-import itertools
+
 
 class City:
     def __init__(self, x, y, z, value):
@@ -36,7 +36,8 @@ class World:
         print("Value: \n", self.value_matrix)
 
         sols = generate_solutions(0, cities_no-1, self.road_matrix, self.cost_matrix, self.value_matrix)
-        print("Solutions:\n", len(sols), sols)
+        print("Solutions:\n", len(sols))
+        [print(sol, "\tCost: ", score(sol, self.cost_matrix), "Value: ", score(sol, self.value_matrix)) for sol in sols]
 
         plt.show()
 
@@ -94,9 +95,14 @@ class World:
 
 
 def generate_solutions(start, end, road_matrix, cost_matrix, value_matrix):
-    b = bfs(start, end, road_matrix, neighbours)
-    b_max = bfs(start, end, value_matrix, rich_neighbours)
-    b_min = bfs(start, end, cost_matrix, easy_neighbours)
+    # b = bfs(start, end, road_matrix, neighbours)
+    # b_max = bfs(start, end, value_matrix, rich_neighbours)
+    # b_min = bfs(start, end, cost_matrix, easy_neighbours)
+    print("Greedy rich")
+    b_max = dfs(start, end, value_matrix, rich_neighbours)  # those are greedy so won't necessarily give best solutions
+    print("Greedy lazy")
+    b_min = dfs(start, end, value_matrix, easy_neighbours)
+    b = random_sol(start, end, len(road_matrix[start]))
     #
     # return [x for x in set(tuple(l) for l in b + b_max + b_min)]
     l = [random_sol(start, end, len(road_matrix[start])) for i in range(10)]
@@ -112,6 +118,21 @@ def random_sol(start, end, n):
     return l
 
 
+def dfs(start, end, matrix, neighbours_fun):
+    result = [start]
+    # start and end choices are fixed
+    for i in range(len(matrix[start])-2):
+        for n in neighbours_fun(start, matrix):
+            if n not in result and n != end:
+                result.append(n)
+                start = n
+                break
+
+    result.append(end)
+    print(result)
+    return result
+
+
 def bfs(start, end, matrix, neighbours_fun):
     results = []
     Q = []
@@ -125,7 +146,8 @@ def bfs(start, end, matrix, neighbours_fun):
             # if len(results) == 10:
             #     return results
         else:
-            for c in neighbours_fun(city, matrix):
+            # reversed because they go on stack
+            for c in reversed(neighbours_fun(city, matrix)):
                 if c not in path:
                     new_path = list(path)
                     new_path.append(c)
@@ -140,15 +162,23 @@ def neighbours(start, matrix):
 def rich_neighbours(start, value_matrix):
     c = [end for end in range(len(value_matrix[start])) if value_matrix[start][end] and start != end]
     c.sort(key=lambda x:  value_matrix[start][x])
-    # neighbours are pushed onto stack, we want the richest at the end
+    # richest at the beginning
     return reversed(c)
 
 
 def easy_neighbours(start, cost_matrix):
     c = [end for end in range(len(cost_matrix[start])) if cost_matrix[start][end] and start != end]
     c.sort(key=lambda x: cost_matrix[start][x])
-    # neighbours are pushed onto stack, we want the easiest, that's what we get
+    # lowest cost at the beginning
     return c
+
+
+def score(solution, matrix):
+    score = 0
+    # we are not going anywhere from last city, therefore solution[:-1]
+    for i, city in enumerate(solution[:-1]):
+        score += matrix[city, solution[i+1]]
+    return score
 
 
 def plot(size, z):
@@ -168,7 +198,7 @@ def plot(size, z):
 
 def main():
 
-    w = World(10, 10)
+    w = World(100, 100)
 
 
 if __name__=='__main__':
