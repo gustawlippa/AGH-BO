@@ -35,6 +35,9 @@ class World:
         print("Cost: \n", self.cost_matrix)
         print("Value: \n", self.value_matrix)
 
+        sols = generate_solutions(0, cities_no-1, self.road_matrix, self.cost_matrix, self.value_matrix)
+        print(sols)
+
         plt.show()
 
     def create_height_mesh(self):
@@ -94,6 +97,33 @@ class World:
         dist = ((c1.x-c2.x)**2+(c1.y-c2.y)**2)**1.0/2
         value = dist*(c2.value + c1.value) * random.uniform(0.5, 1.0)
         return value
+
+
+def generate_solutions(start, end, road_matrix, cost_matrix, value_matrix):
+    b = bfs(start, end, road_matrix, [], [])
+    # b_max = bfs_max(start, end, value_matrix)
+    return b
+
+
+def bfs(start, end, matrix, result, visited):
+    Q = []
+    Q.append([start])
+    while Q:
+        path = Q.pop()
+        city = path[-1]
+        if city == end:
+            return path
+        elif city not in visited:
+            for c in neighbours(city, matrix):
+                new_path = list(path)
+                new_path.append(c)
+                Q.append(new_path)
+            visited.append(city)
+    return []
+
+
+def neighbours(start, matrix):
+    return [end for end in range(len(matrix[start])) if matrix[start][end] and start!=end]
 
 
 def plot(size, z):
