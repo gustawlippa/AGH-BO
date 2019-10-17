@@ -100,12 +100,13 @@ class World:
 
 
 def generate_solutions(start, end, road_matrix, cost_matrix, value_matrix):
-    b = bfs(start, end, road_matrix, [], [])
-    # b_max = bfs_max(start, end, value_matrix)
-    return b
+    b = bfs(start, end, road_matrix, [])
+    b_max = bfs_max(start, end, value_matrix, [])
+
+    return [b, b_max]
 
 
-def bfs(start, end, matrix, result, visited):
+def bfs(start, end, matrix, visited):
     Q = []
     Q.append([start])
     while Q:
@@ -120,6 +121,27 @@ def bfs(start, end, matrix, result, visited):
                 Q.append(new_path)
             visited.append(city)
     return []
+
+def bfs_max(start, end, matrix, visited):
+    Q = []
+    Q.append([start])
+    while Q:
+        path = Q.pop()
+        city = path[-1]
+        if city == end:
+            return path
+        elif city not in visited:
+            for c in reversed(rich_neighbours(city, matrix)):
+                new_path = list(path)
+                new_path.append(c)
+                Q.append(new_path)
+            visited.append(city)
+    return []
+
+def rich_neighbours(start, value_matrix):
+    c =  [end for end in range(len(value_matrix[start])) if value_matrix[start][end] and start!=end]
+    c.sort(key=lambda x:  value_matrix[start][x])
+    return c
 
 
 def neighbours(start, matrix):
