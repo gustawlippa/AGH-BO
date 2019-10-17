@@ -102,12 +102,12 @@ class World:
 def generate_solutions(start, end, road_matrix, cost_matrix, value_matrix):
     b = bfs(start, end, road_matrix, neighbours)
     b_max = bfs(start, end, value_matrix, rich_neighbours)
-    # b_min = bfs_min(start, end, )
+    b_min = bfs(start, end, cost_matrix, easy_neighbours)
 
-    return [b, b_max]
+    return [b, b_max, b_min]
 
 
-def bfs(start, end, matrix, neighbours):
+def bfs(start, end, matrix, neighbours_fun):
     Q = []
     visited = []
     Q.append([start])
@@ -117,12 +117,16 @@ def bfs(start, end, matrix, neighbours):
         if city == end:
             return path
         elif city not in visited:
-            for c in neighbours(city, matrix):
+            for c in neighbours_fun(city, matrix):
                 new_path = list(path)
                 new_path.append(c)
                 Q.append(new_path)
             visited.append(city)
     return []
+
+
+def neighbours(start, matrix):
+    return [end for end in range(len(matrix[start])) if matrix[start][end] and start!=end]
 
 
 def rich_neighbours(start, value_matrix):
@@ -132,8 +136,11 @@ def rich_neighbours(start, value_matrix):
     return reversed(c)
 
 
-def neighbours(start, matrix):
-    return [end for end in range(len(matrix[start])) if matrix[start][end] and start!=end]
+def easy_neighbours(start, cost_matrix):
+    c = [end for end in range(len(cost_matrix[start])) if cost_matrix[start][end] and start != end]
+    c.sort(key=lambda x: cost_matrix[start][x])
+    # neighbours are pushed onto stack, we want the easiest, that's what we get
+    return c
 
 
 def plot(size, z):
