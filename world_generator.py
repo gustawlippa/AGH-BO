@@ -26,17 +26,11 @@ class World:
         self.cities = self.populate_world()
         print("Cities coords:\n", self.cities)
 
-        #  l = lambda x, y: 1 if (x, y) in [(c.x, c.y) for c in self.cities] else 0
-        #  plot(size, np.vectorize(l))
-
         self.road_matrix, self.cost_matrix, self.value_matrix = self.create_road_matrices()
         print("No of roads: \n", np.count_nonzero(self.road_matrix))
         print("Roads: \n", self.road_matrix)
         print("Cost: \n", self.cost_matrix)
         print("Value: \n", self.value_matrix)
-
-        sols = generate_solutions(0, cities_no-1, self.road_matrix, self.cost_matrix, self.value_matrix)
-        print("Solutions:\n", len(sols))
 
         plt.show()
 
@@ -68,11 +62,9 @@ class World:
         value_matrix = np.zeros([n, n])
         road_matrix = np.zeros([n, n])
 
-        for x1, c1 in enumerate(cities):
-            for y1, c2 in enumerate(cities):
+        for x, c1 in enumerate(cities):
+            for y, c2 in enumerate(cities):
                 if c1 != c2:
-                    x = x1-1
-                    y = y1-1
 
                     dist_to_centre = ((c1.x - self.size/2) ** 2 + (c1.y - self.size/2) ** 2) ** (1.0 / 2)
                     radius = (dist_to_centre / 2) + (0.35 * self.size)  # the range of a city is ~40% of a total space
@@ -99,24 +91,27 @@ class World:
         return value
 
 
-def generate_solutions(start, end, road_matrix, cost_matrix, value_matrix):
-    b = bfs(start, end, road_matrix, neighbours)
-    b_max = bfs(start, end, value_matrix, rich_neighbours)
-    b_min = bfs(start, end, cost_matrix, easy_neighbours)
+def generate_solutions(start, end, road_matrix, cost_matrix, value_matrix, n):
+    # generate solutions with paths from city 'start' to 'end' city
+    # parametrised by cost_ and value_ matrices
+
+    no_of_funs = 3
+    b = bfs(start, end, road_matrix, neighbours, n/no_of_funs)
+    b_max = bfs(start, end, value_matrix, rich_neighbours, n/no_of_funs)
+    b_min = bfs(start, end, cost_matrix, easy_neighbours, n/no_of_funs)
 
     return [x for x in set(tuple(l) for l in b + b_max + b_min)]
 
 
-def bfs(start, end, matrix, neighbours_fun):
+def bfs(start, end, matrix, neighbours_fun, n):
     results = []
-    Q = []
-    Q.append([start])
+    Q = [[start]]
     while Q:
         path = Q.pop()
         city = path[-1]
         if city == end:
             results.append(path)
-            if len(results) == 10:
+            if len(results) == n:
                 return results
         else:
             for c in neighbours_fun(city, matrix):
@@ -128,11 +123,11 @@ def bfs(start, end, matrix, neighbours_fun):
 
 
 def neighbours(start, matrix):
-    return [end for end in range(len(matrix[start])) if matrix[start][end] and start!=end]
+    return [end for end in range(len(matrix[start])) if matrix[start][end] and start != end]
 
 
 def rich_neighbours(start, value_matrix):
-    c = [end for end in range(len(value_matrix[start])) if value_matrix[start][end] and start!=end]
+    c = [end for end in range(len(value_matrix[start])) if value_matrix[start][end] and start != end]
     c.sort(key=lambda x:  value_matrix[start][x])
     # neighbours are pushed onto stack, we want the richest at the end
     return reversed(c)
@@ -161,8 +156,14 @@ def plot(size, z):
 
 
 def main():
+    cities_no = 10
+    world_size = 10
 
-    w = World(10, 10)
+    w = World(cities_no, world_size)
+    no_of_solutions = 30
+    sols = generate_solutions(0, cities_no - 1, w.road_matrix, w.cost_matrix, w.value_matrix, no_of_solutions)
+    print("Solutions:\n", len(sols))
+    print(sols)
 
 
 if __name__=='__main__':
