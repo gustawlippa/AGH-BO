@@ -1,3 +1,5 @@
+import numpy as np
+
 from world_generator import *
 
 
@@ -73,32 +75,51 @@ class BeesAlgorithm:
 
 
 def neighborhood_function(world, solution, n_of_neighbors):
-    # TODO: W generowanych nowych sciezkach moga byc uzywane miasta, ktore byly juz na sciezce wczesniej, badz beda pozniej
-
     neighbours = []
 
     for i in range(n_of_neighbors):
         # generate beginning and end of change
-        beg = random.randint(0, len(solution))
+        beg = random.randrange(0, len(solution))
         end = beg
         while beg is end:
-            end = random.randint(0, len(solution))
+            end = random.randrange(0, len(solution))
         if end < beg:
             beg, end = end, beg
+
+        # generate new road_matrix
+        road_matrix = world.road_matrix.copy()
+        cost_matrix = world.cost_matrix.copy()
+        value_matrix = world.value_matrix.copy()
+        size_of_the_world = np.size(road_matrix, 0)
+
+        for j in range(0, beg):
+            road_matrix[solution[j]] = np.zeros(size_of_the_world)
+            road_matrix[:, solution[j]] = np.zeros(size_of_the_world)
+            cost_matrix[solution[j]] = np.zeros(size_of_the_world)
+            cost_matrix[:, solution[j]] = np.zeros(size_of_the_world)
+            value_matrix[solution[j]] = np.zeros(size_of_the_world)
+            value_matrix[:, solution[j]] = np.zeros(size_of_the_world)
+        for j in range(end + 1, len(solution)):
+            road_matrix[solution[j]] = np.zeros(size_of_the_world)
+            road_matrix[:, solution[j]] = np.zeros(size_of_the_world)
+            cost_matrix[solution[j]] = np.zeros(size_of_the_world)
+            cost_matrix[:, solution[j]] = np.zeros(size_of_the_world)
+            value_matrix[solution[j]] = np.zeros(size_of_the_world)
+            value_matrix[:, solution[j]] = np.zeros(size_of_the_world)
 
         # generate change
         list_of_changes = generate_solutions(
             solution[beg],
-            solution[end - 1],
-            world.road_matrix,
-            world.cost_matrix,
-            world.value_matrix,
+            solution[end],
+            road_matrix,
+            cost_matrix,
+            value_matrix,
             1
         )
         change = list_of_changes[0]
 
         # appending new solution to the list
-        neighbours.append(solution[:beg+1] + change[1:] + solution[end:])
+        neighbours.append(solution[:beg] + change + solution[end + 1:])
 
     return neighbours
 
