@@ -68,8 +68,35 @@ class BeesAlgorithm:
         return [bee for bee.current_solution in bees]
 
 
-def neighborhood_function():
-    pass #TODO
+def neighborhood_function(world, solution, n_of_neighbors):
+    # TODO: W generowanych nowych sciezkach moga byc uzywane miasta, ktore byly juz na sciezce wczesniej, badz beda pozniej
+
+    neighbours = []
+
+    for i in range(n_of_neighbors):
+        # generate beginning and end of change
+        beg = random.randint(0, len(solution))
+        end = beg
+        while beg is end:
+            end = random.randint(0, len(solution))
+        if end < beg:
+            beg, end = end, beg
+
+        # generate change
+        list_of_changes = generate_solutions(
+            solution[beg],
+            solution[end - 1],
+            world.road_matrix,
+            world.cost_matrix,
+            world.value_matrix,
+            1
+        )
+        change = list_of_changes[0]
+
+        # appending new solution to the list
+        neighbours.append(solution[:beg+1] + change[1:] + solution[end:])
+
+    return neighbours
 
 
 def fitness_function(world, solution):
@@ -89,7 +116,8 @@ def main():
     sols = generate_solutions(0, cities_no - 1, w.road_matrix, w.cost_matrix, w.value_matrix, no_of_solutions)
     print("Solutions:\n", len(sols))
     print(sols)
-    print("Fitness function:\n", fitness_function(w, sols[4]))
+    print("Fitness function:\n", fitness_function(w, sols[0]))
+    print("Neighborhood function:\n", neighborhood_function(w, sols[0], 5))
     # alg = BeesAlgorithm(w, 35, 15, 5, 15, 5, ???, ???)
 
 
