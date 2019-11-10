@@ -9,7 +9,8 @@ class Bee:
         self.current_solution = None
 
     def generate_new_solution(self):
-        pass #TODO
+        # TODO
+        pass
 
 
 class BeesAlgorithm:
@@ -47,11 +48,12 @@ class BeesAlgorithm:
         return best_solution
 
     def iterate(self, bees, solutions):
-        #calculate fitnesses
+        # calculate fitnesses
         fitnesses = [self.fitness_function(self.world,x) for x in solutions]
         fit_sol = list(zip(fitnesses, solutions))
         fit_sol.sort(key = lambda x: x[0])
-        #recruit bees to solutions
+
+        # recruit bees to solutions
         elite_sols = [s for (f,s) in fit_sol[:self.elite_solutions]]
         good_sols = [s for (f,s) in fit_sol[self.elite_solutions:self.good_solutions]]
         rest_sols = [s for (f,s) in fit_sol[self.good_solutions:]]
@@ -61,10 +63,12 @@ class BeesAlgorithm:
             bee.current_solution = good_sols[i % len(good_sols)]
         for i, bee in enumerate(bees[self.n_of_good:]):
             bee.current_solution = rest_sols[i % len(rest_sols)]
-        #activate bees
+
+        # activate bees
         for bee in bees:
             bee.generate_new_solution()
-        #get new solutions
+
+        # get new solutions
         return [bee for bee.current_solution in bees]
 
 
@@ -118,7 +122,7 @@ def main():
     print(sols)
     print("Fitness function:\n", fitness_function(w, sols[0]))
     print("Neighborhood function:\n", neighborhood_function(w, sols[0], 5))
-    # alg = BeesAlgorithm(w, 35, 15, 5, 15, 5, ???, ???)
+    # alg = BeesAlgorithm(w, 35, 15, 5, 15, 5, neighborhood_function, fitness_function)
 
 
 if __name__ == '__main__':
