@@ -73,7 +73,11 @@ def neighborhood_function():
 
 
 def fitness_function(world, solution):
-    pass #TODO
+    value = 0
+    for i in range(len(solution) - 1):
+        value += world.value_matrix[solution[i]][solution[i + 1]]
+        value -= world.cost_matrix[solution[i]][solution[i + 1]]
+    return value
 
 
 def main():
@@ -85,6 +89,7 @@ def main():
     sols = generate_solutions(0, cities_no - 1, w.road_matrix, w.cost_matrix, w.value_matrix, no_of_solutions)
     print("Solutions:\n", len(sols))
     print(sols)
+    print("Fitness function:\n", fitness_function(w, sols[4]))
     # alg = BeesAlgorithm(w, 35, 15, 5, 15, 5, ???, ???)
 
 
