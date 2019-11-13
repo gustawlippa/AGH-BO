@@ -11,9 +11,10 @@ class Bee:
         self.current_solution = None
 
     def generate_new_solution(self):
-        # TODO
-        pass
-
+        # get random city in current_solution heree, and let function generate solution?
+        nbors_sols = self.neighbor_function(self.world, self.current_solution, 5)
+        # get best solution out of list?
+        return nbors_sols[random.randint(0, len(nbors_sols)-1)]
 
 class BeesAlgorithm:
 
@@ -75,6 +76,9 @@ class BeesAlgorithm:
 
 
 def neighborhood_function(world, solution, n_of_neighbors):
+    def distinct(l):
+        return list(set(l))
+	
     neighbours = []
 
     for i in range(n_of_neighbors):
@@ -121,7 +125,7 @@ def neighborhood_function(world, solution, n_of_neighbors):
         # appending new solution to the list
         neighbours.append(solution[:beg] + change + solution[end + 1:])
 
-    return neighbours
+    return distinct(neighbours)
 
 
 def fitness_function(world, solution):
