@@ -8,20 +8,20 @@ class Bee:
     def __init__(self, world, neighbor_func, fitness_func):
         self.world = world
         self.neighbor_function = neighbor_func
-		self.fitness_function = fitness_func
+        self.fitness_function = fitness_func
         self.current_solution = None
 
     def generate_new_solution(self):
         # get random city in current_solution heree, and let function generate solution?
         nbors_sols = self.neighbor_function(self.world, self.current_solution, 5)
-		print("Bee:")
-		print("    neighborhood: ", nbors_sols)
+        print("Bee:")
+        print("    neighborhood: ", nbors_sols)
         # get best solution out of list?
-		fitnesses = [self.fitness_function(self.world,x) for x in nbors_sols]
+        fitnesses = [self.fitness_function(self.world,x) for x in nbors_sols]
         print("    fitnesses", fitnesses)
-		fit_sol = list(zip(fitnesses, solutions))
-        fit_sol.sort(key = lambda x: x[0])
-        return fit_sol[0]
+        fit_sol = list(zip(fitnesses, nbors_sols))
+        fit_sol.sort(key = lambda x: x[0], reverse = True)
+        self.current_solution = fit_sol[0][1]
 
 class BeesAlgorithm:
 
@@ -47,15 +47,15 @@ class BeesAlgorithm:
         best_solution = None
         iteration = 0
         while iteration < max_iter:
-			print("Iteration ", iteration+1)
+            print("Iteration ", iteration+1)
             solutions = self.iterate(bees, solutions)
 
             fitnesses = [self.fitness_function(self.world, x) for x in solutions]
             fit_sol = list(zip(fitnesses, solutions))
-            fit_sol.sort(key = lambda x: x[0])
+            fit_sol.sort(key = lambda x: x[0], reverse = True)
 
             best_solution = fit_sol[0][1]
-			print("Best solution in iteration ", iteration+1, " : ", best_solution, " fitness: ", fit_sol[0][0])
+            print("Best solution in iteration ", iteration+1, " : ", best_solution, " fitness: ", fit_sol[0][0])
             iteration += 1
         return best_solution
 
@@ -63,7 +63,7 @@ class BeesAlgorithm:
         # calculate fitnesses
         fitnesses = [self.fitness_function(self.world,x) for x in solutions]
         fit_sol = list(zip(fitnesses, solutions))
-        fit_sol.sort(key = lambda x: x[0])
+        fit_sol.sort(key = lambda x: x[0], reverse = True)
 
         # recruit bees to solutions
         elite_sols = [s for (f,s) in fit_sol[:self.elite_solutions]]
@@ -79,15 +79,15 @@ class BeesAlgorithm:
         # activate bees
         for bee in bees:
             bee.generate_new_solution()
-
+        print([self.fitness_function(self.world,bee.current_solution) for bee in bees])
         # get new solutions
-        return [bee for bee.current_solution in bees]
+        return [bee.current_solution for bee in bees]
 
 
 def neighborhood_function(world, solution, n_of_neighbors):
     def distinct(l):
         return list(set(l))
-	
+    
     neighbours = []
 
     for i in range(n_of_neighbors):
@@ -146,19 +146,22 @@ def fitness_function(world, solution):
 
 
 def main():
-    cities_no = 10
+    cities_no = 13
     world_size = 10
 
     w = World(cities_no, world_size)
-    no_of_solutions = 30
+    no_of_solutions = 10
     sols = generate_solutions(0, cities_no - 1, w.road_matrix, w.cost_matrix, w.value_matrix, no_of_solutions)
+    fits = [fitness_function(w, sol) for sol in sols]
+    sols = sols[1:5]
     print("Solutions:\n", len(sols))
     print(sols)
-    print("Fitness function:\n", fitness_function(w, sols[0]))
-    print("Neighborhood function:\n", neighborhood_function(w, sols[0], 5))
-    alg = BeesAlgorithm(w, 35, 15, 5, 15, 5, neighborhood_function, fitness_function)
-	best_generated_solution = alg.run(20, sols)
-	print("Best solution of all: ", best_generated_solution, " fitness: ", fitness_function(w, best_generated_solution))
+    print("Fitnesses:\n", )
+    #print("Neighborhood function:\n", neighborhood_function(w, sols[0], 5))
+    print(max(fits))
+    alg = BeesAlgorithm(w, 35, 15, 5, 2, 1, neighborhood_function, fitness_function)
+    best_generated_solution = alg.run(5, sols)
+    print("Best solution of all: ", best_generated_solution, " fitness: ", fitness_function(w, best_generated_solution))
 
 
 if __name__ == '__main__':
