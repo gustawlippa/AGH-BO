@@ -5,16 +5,20 @@ from world_generator import *
 
 class Bee:
 
-    def __init__(self, world, neighbor_func):
+    def __init__(self, world, neighbor_func, fitness_func):
         self.world = world
         self.neighbor_function = neighbor_func
+		self.fitness_function = fitness_func
         self.current_solution = None
 
     def generate_new_solution(self):
         # get random city in current_solution heree, and let function generate solution?
         nbors_sols = self.neighbor_function(self.world, self.current_solution, 5)
         # get best solution out of list?
-        return nbors_sols[random.randint(0, len(nbors_sols)-1)]
+		fitnesses = [self.fitness_function(self.world,x) for x in nbors_sols]
+        fit_sol = list(zip(fitnesses, solutions))
+        fit_sol.sort(key = lambda x: x[0])
+        return fit_sol[0]
 
 class BeesAlgorithm:
 
@@ -36,7 +40,7 @@ class BeesAlgorithm:
         self.fitness_function = fit_func
 
     def run(self, max_iter, solutions):
-        bees = [Bee(self.world) for x in range(0, self.n_of_bees)]
+        bees = [Bee(self.world, self.neighbor_function, self.fitness_function) for x in range(0, self.n_of_bees)]
         best_solution = None
         iteration = 0
         while iteration < max_iter:
@@ -147,7 +151,8 @@ def main():
     print(sols)
     print("Fitness function:\n", fitness_function(w, sols[0]))
     print("Neighborhood function:\n", neighborhood_function(w, sols[0], 5))
-    # alg = BeesAlgorithm(w, 35, 15, 5, 15, 5, neighborhood_function, fitness_function)
+    alg = BeesAlgorithm(w, 35, 15, 5, 15, 5, neighborhood_function, fitness_function)
+	best_generated_solution = alg.run(20, sols)
 
 
 if __name__ == '__main__':
