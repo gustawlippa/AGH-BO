@@ -158,6 +158,7 @@ def main():
     print("Neighborhood function:\n", neighborhood_function(w, sols[0], 5))
     alg = BeesAlgorithm(w, 35, 15, 5, 15, 5, neighborhood_function, fitness_function)
 	best_generated_solution = alg.run(20, sols)
+	print("Best solution of all: ", best_generated_solution, " fitness: ", fitness_function(w, best_generated_solution))
 
 
 if __name__ == '__main__':
