@@ -14,9 +14,12 @@ class Bee:
     def generate_new_solution(self):
         # get random city in current_solution heree, and let function generate solution?
         nbors_sols = self.neighbor_function(self.world, self.current_solution, 5)
+		print("Bee:")
+		print("    neighborhood: ", nbors_sols)
         # get best solution out of list?
 		fitnesses = [self.fitness_function(self.world,x) for x in nbors_sols]
-        fit_sol = list(zip(fitnesses, solutions))
+        print("    fitnesses", fitnesses)
+		fit_sol = list(zip(fitnesses, solutions))
         fit_sol.sort(key = lambda x: x[0])
         return fit_sol[0]
 
@@ -44,6 +47,7 @@ class BeesAlgorithm:
         best_solution = None
         iteration = 0
         while iteration < max_iter:
+			print("Iteration ", iteration+1)
             solutions = self.iterate(bees, solutions)
 
             fitnesses = [self.fitness_function(self.world, x) for x in solutions]
@@ -51,6 +55,7 @@ class BeesAlgorithm:
             fit_sol.sort(key = lambda x: x[0])
 
             best_solution = fit_sol[0][1]
+			print("Best solution in iteration ", iteration+1, " : ", best_solution, " fitness: ", fit_sol[0][0])
             iteration += 1
         return best_solution
 
