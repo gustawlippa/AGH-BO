@@ -24,15 +24,15 @@ class World:
         self.height_mesh = self.create_height_mesh()
         self.value_mesh = self.create_value_mesh()
         self.cities = self.populate_world()
-        print("Cities coords:\n", self.cities)
+        # print("Cities coords:\n", self.cities)
 
         self.road_matrix, self.cost_matrix, self.value_matrix = self.create_road_matrices()
         print("No of roads: \n", np.count_nonzero(self.road_matrix))
-        print("Roads: \n", self.road_matrix)
-        print("Cost: \n", self.cost_matrix)
-        print("Value: \n", self.value_matrix)
+        # print("Roads: \n", self.road_matrix)
+        # print("Cost: \n", self.cost_matrix)
+        # print("Value: \n", self.value_matrix)
 
-        plt.show()
+        # plt.show()
 
     def create_height_mesh(self):
         return self.create_somewhat_random_normalized_mesh()
@@ -75,6 +75,15 @@ class World:
                         road_matrix[x][y] = 1
                         cost_matrix[x][y] = self.get_cost(c1, c2)
                         value_matrix[x][y] = self.get_value(c1, c2)
+
+            if not any(road_matrix[x]):
+                # there is no way to get out of city
+                y = random.randint(0, n)
+                road_matrix[x][y] = 1
+                c2 = cities[y]
+                cost_matrix[x][y] = self.get_cost(c1, c2)
+                value_matrix[x][y] = self.get_value(c1, c2)
+
         return road_matrix, cost_matrix, value_matrix
 
     def get_cost(self, c1, c2):
@@ -91,27 +100,32 @@ class World:
         return value
 
 
-def generate_solutions(start, end, road_matrix, cost_matrix, value_matrix, n):
+def generate_solutions(start, end, road_matrix, cost_matrix, value_matrix, n, failsafe=100000):
     # generate solutions with paths from city 'start' to 'end' city
     # parametrised by cost_ and value_ matrices
+    # failsafe - how many iterations can go by without finding a solution
 
-    no_of_funs = 3
-    b = bfs(start, end, road_matrix, neighbours, n/no_of_funs)
-    b_max = bfs(start, end, value_matrix, rich_neighbours, n/no_of_funs)
-    b_min = bfs(start, end, cost_matrix, easy_neighbours, n/no_of_funs)
+    b = bfs(start, end, road_matrix, neighbours, n, failsafe)
+    b_max = bfs(start, end, value_matrix, rich_neighbours, n, failsafe)
+    b_min = bfs(start, end, cost_matrix, easy_neighbours, n, failsafe)
 
-    return [x for x in set(tuple(l) for l in b + b_max + b_min)]
+    return [x for x in set(tuple(l) for l in b + b_max + b_min)][0:n]
 
 
-def bfs(start, end, matrix, neighbours_fun, n):
+def bfs(start, end, matrix, neighbours_fun, n, failsafe):
+    # print("bfs,", start, end, neighbours_fun, n)
     results = []
     Q = [[start]]
-    while Q:
+    original_failsafe = failsafe
+    while Q and failsafe != 0:
+        failsafe -= 1
         path = Q.pop()
         city = path[-1]
         if city == end:
+            failsafe = original_failsafe
+            # print("bfs sol: ", len(results), "/", n, path,  Q)
             results.append(path)
-            if len(results) == n:
+            if len(results) >= n:
                 return results
         else:
             for c in neighbours_fun(city, matrix):
@@ -119,6 +133,8 @@ def bfs(start, end, matrix, neighbours_fun, n):
                     new_path = list(path)
                     new_path.append(c)
                     Q.append(new_path)
+    if failsafe == 0:
+        print('BFS did not find enough solutions. Looking for: ', n, ', found: ', len(results))
     return results
 
 
@@ -155,16 +171,29 @@ def plot(size, z):
     plt.show()
 
 
-def main():
-    cities_no = 10
-    world_size = 10
+def example():
+    cities_no = 30
+    world_size = 30
 
     w = World(cities_no, world_size)
     no_of_solutions = 30
     sols = generate_solutions(0, cities_no - 1, w.road_matrix, w.cost_matrix, w.value_matrix, no_of_solutions)
     print("Solutions:\n", len(sols))
-    print(sols)
+
+    sols = generate_solutions(cities_no-1, 0, w.road_matrix, w.cost_matrix, w.value_matrix, no_of_solutions)
+    print("Solutions:\n", len(sols))
+
+    sols = generate_solutions(0, 1, w.road_matrix, w.cost_matrix, w.value_matrix, no_of_solutions)
+    print("Solutions:\n", len(sols))
+
+    sols = generate_solutions(13, 17, w.road_matrix, w.cost_matrix, w.value_matrix, no_of_solutions)
+    print("Solutions:\n", len(sols))
+
+    sols = generate_solutions(17, 13, w.road_matrix, w.cost_matrix, w.value_matrix, no_of_solutions)
+    print("Solutions:\n", len(sols))
+
+    # print(sols)
 
 
-if __name__=='__main__':
-    main()
+if __name__ == '__main__':
+    example()
