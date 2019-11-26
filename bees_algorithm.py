@@ -1,6 +1,7 @@
 import numpy as np
 from plotter import plot_history
 from world_generator import *
+import saver
 
 
 class Bee:
@@ -65,6 +66,10 @@ class BeesAlgorithm:
             print("Best fitness in iteration ", iteration + 1, " : ", fit_sol[0][0], " solution: ", best_solution)
             iteration += 1
             best_fitnesses.append(fit_sol[0][0])
+            
+        saver.save(self.world, 'world')
+        saver.save(best_fitnesses, 'fitness_history')
+        saver.save(best_solution, 'best_solution')
         return best_solution, best_fitnesses
 
     def iterate(self, bees, solutions, print_all=False):
@@ -155,10 +160,10 @@ def fitness_function(world, solution):
 
 
 def main():
-    cities_no = 13
+    cities_no = 50
     world_size = 10
 
-    iteration_no = 100
+    iteration_no = 1000
 
     w = World(cities_no, world_size)
     no_of_solutions = 20
@@ -178,4 +183,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    import cProfile
+
+    stats = cProfile.run('main()', sort=2)

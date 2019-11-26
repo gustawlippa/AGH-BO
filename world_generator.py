@@ -105,26 +105,26 @@ def generate_solutions(start, end, road_matrix, cost_matrix, value_matrix, n, fa
     # parametrised by cost_ and value_ matrices
     # failsafe - how many iterations can go by without finding a solution
 
-    b = bfs(start, end, cost_matrix, shuffled_neighbours, n, failsafe)
+    b = bfs(start, end, road_matrix, neighbours, n, failsafe)
     b = list(set(tuple(l) for l in b))
     if len(b) == n:
         return b
 
-    b += bfs(start, end, road_matrix, neighbours, n, failsafe)
+    b += bfs(start, end, cost_matrix, shuffled_neighbours, n, failsafe)
     b = list(set(tuple(l) for l in b))
 
-    if len(b) == n:
-        return b
+    if len(b) >= n:
+        return b[:n]
 
     b += bfs(start, end, value_matrix, rich_neighbours, n, failsafe)
     b = list(set(tuple(l) for l in b))
     if len(b) >= n:
-        return b[0:n]
+        return b[:n]
 
     b += bfs(start, end, cost_matrix, easy_neighbours, n, failsafe)
     b = list(set(tuple(l) for l in b))
 
-    return b[0:n]
+    return b[:n]
 
 
 def bfs(start, end, matrix, neighbours_fun, n, failsafe):
@@ -154,7 +154,14 @@ def bfs(start, end, matrix, neighbours_fun, n, failsafe):
 
 
 def neighbours(start, matrix):
-    return [end for end in range(len(matrix[start])) if matrix[start][end] and start != end]
+    c = [end for end in range(len(matrix[start])) if matrix[start][end] and start != end]
+    # fast shuffle, should help get out of local minimums
+    if len(c) > 1:
+        i = random.randint(0, len(c)-1)
+        j = random.randint(0, len(c)-1)
+        c[i], c[j] = c[j], c[i]
+
+    return c
 
 
 def rich_neighbours(start, value_matrix):
