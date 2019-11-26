@@ -105,11 +105,26 @@ def generate_solutions(start, end, road_matrix, cost_matrix, value_matrix, n, fa
     # parametrised by cost_ and value_ matrices
     # failsafe - how many iterations can go by without finding a solution
 
-    b = bfs(start, end, road_matrix, neighbours, n, failsafe)
-    b_max = bfs(start, end, value_matrix, rich_neighbours, n, failsafe)
-    b_min = bfs(start, end, cost_matrix, easy_neighbours, n, failsafe)
+    b = bfs(start, end, cost_matrix, shuffled_neighbours, n, failsafe)
+    b = list(set(tuple(l) for l in b))
+    if len(b) == n:
+        return b
 
-    return [x for x in set(tuple(l) for l in b + b_max + b_min)][0:n]
+    b += bfs(start, end, road_matrix, neighbours, n, failsafe)
+    b = list(set(tuple(l) for l in b))
+
+    if len(b) == n:
+        return b
+
+    b += bfs(start, end, value_matrix, rich_neighbours, n, failsafe)
+    b = list(set(tuple(l) for l in b))
+    if len(b) >= n:
+        return b[0:n]
+
+    b += bfs(start, end, cost_matrix, easy_neighbours, n, failsafe)
+    b = list(set(tuple(l) for l in b))
+
+    return b[0:n]
 
 
 def bfs(start, end, matrix, neighbours_fun, n, failsafe):
@@ -153,6 +168,12 @@ def easy_neighbours(start, cost_matrix):
     c = [end for end in range(len(cost_matrix[start])) if cost_matrix[start][end] and start != end]
     c.sort(key=lambda x: cost_matrix[start][x])
     # neighbours are pushed onto stack, we want the easiest, that's what we get
+    return c
+
+
+def shuffled_neighbours(start, matrix):
+    c = [end for end in range(len(matrix[start])) if matrix[start][end] and start != end]
+    random.shuffle(c)
     return c
 
 
