@@ -104,15 +104,15 @@ def generate_solutions(start, end, road_matrix, cost_matrix, value_matrix, n, fa
     # generate solutions with paths from city 'start' to 'end' city
     # parametrised by cost_ and value_ matrices
     # failsafe - how many iterations can go by without finding a solution
+    b = []
 
-    b = bfs(start, end, road_matrix, neighbours, n, failsafe)
+    b += bfs(start, end, road_matrix, neighbours, n, failsafe)
     b = list(set(tuple(l) for l in b))
-    if len(b) == n:
-        return b
+    if len(b) >= n:
+        return b[:n]
 
-    b += bfs(start, end, cost_matrix, shuffled_neighbours, n, failsafe)
+    b += bfs(start, end, road_matrix, shuffled_neighbours, n, failsafe)
     b = list(set(tuple(l) for l in b))
-
     if len(b) >= n:
         return b[:n]
 

@@ -9,5 +9,6 @@ def save(data, filename='log'):
 
 def load(filename='log'):
     f = open(filename, 'rb')
-    pickle.load(f)
+    data = pickle.load(f)
     f.close()
+    return data

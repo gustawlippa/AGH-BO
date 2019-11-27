@@ -50,6 +50,10 @@ class BeesAlgorithm:
     def run(self, max_iter, solutions, print_all=False):
         bees = [Bee(self.world, self.neighbor_function, self.fitness_function) for x in range(0, self.n_of_bees)]
         best_solution = None
+        best_solution_overall = None
+        best_solution_fitness_overall = 0
+        worst_solution_fitness_overall = 10000
+        best_solution_iteration = 0
         iteration = 0
 
         best_fitnesses = []
@@ -63,6 +67,12 @@ class BeesAlgorithm:
             fit_sol.sort(key=lambda x: x[0], reverse=True)
 
             best_solution = fit_sol[0][1]
+            if fit_sol[0][0] > best_solution_fitness_overall:
+                best_solution_overall = best_solution
+                best_solution_iteration = iteration+1
+                best_solution_fitness_overall = fit_sol[0][0]
+                if fit_sol[-1][0] < worst_solution_fitness_overall:
+                    worst_solution_fitness_overall = fit_sol[-1][0]
             print("Best fitness in iteration ", iteration + 1, " : ", fit_sol[0][0], " solution: ", best_solution)
             iteration += 1
             best_fitnesses.append(fit_sol[0][0])
@@ -70,6 +80,12 @@ class BeesAlgorithm:
         saver.save(self.world, 'world')
         saver.save(best_fitnesses, 'fitness_history')
         saver.save(best_solution, 'best_solution')
+
+        print('Worst fitness overall: ', worst_solution_fitness_overall)
+        print('Best solution: ', best_solution_overall)
+        print('Found in ', best_solution_iteration, ' iteration')
+        print('Fitness: ', best_solution_fitness_overall)
+
         return best_solution, best_fitnesses
 
     def iterate(self, bees, solutions, print_all=False):
@@ -160,21 +176,22 @@ def fitness_function(world, solution):
 
 
 def main():
-    cities_no = 50
+    cities_no = 30
     world_size = 10
 
-    iteration_no = 1000
+    iteration_no = 300
 
     w = World(cities_no, world_size)
-    no_of_solutions = 20
+    # w = saver.load('world')
+    no_of_solutions = 50
     sols = generate_solutions(0, cities_no - 1, w.road_matrix, w.cost_matrix, w.value_matrix, no_of_solutions)
     fits = [fitness_function(w, sol) for sol in sols]
-    sols = sols[1:5]
+    sols = sols
     print("Generated ", len(sols), ' solutions:\n', sols)
     # print("Neighborhood function:\n", neighborhood_function(w, sols[0], 5))
     print('Best fitness: ', max(fits))
 
-    alg = BeesAlgorithm(w, 35, 15, 5, 2, 1, neighborhood_function, fitness_function)
+    alg = BeesAlgorithm(w, no_of_solutions, 10, 5, 2, 1, neighborhood_function, fitness_function)
     best_generated_solution, fitness_history = alg.run(iteration_no, sols)
 
     plot_history(fitness_history)
@@ -183,6 +200,8 @@ def main():
 
 
 if __name__ == '__main__':
-    import cProfile
 
-    stats = cProfile.run('main()', sort=2)
+    main()
+
+    # import cProfile
+    # stats = cProfile.run('main()', sort=2)
