@@ -1,5 +1,4 @@
 import numpy as np
-from plotter import plot_history
 from world_generator import *
 import saver
 
@@ -176,14 +175,20 @@ def fitness_function(world, solution):
 
 
 def main():
+    # world parameters
     cities_no = 30
     world_size = 10
 
+    # bee algorithm parameters
     iteration_no = 300
+    no_of_solutions = 50
+    good_n = 10
+    elite_n = 5
+    good_sols = 2
+    elite_sols = 1
 
     w = World(cities_no, world_size)
     # w = saver.load('world')
-    no_of_solutions = 50
     sols = generate_solutions(0, cities_no - 1, w.road_matrix, w.cost_matrix, w.value_matrix, no_of_solutions)
     fits = [fitness_function(w, sol) for sol in sols]
     sols = sols
@@ -191,17 +196,14 @@ def main():
     # print("Neighborhood function:\n", neighborhood_function(w, sols[0], 5))
     print('Best fitness: ', max(fits))
 
-    alg = BeesAlgorithm(w, no_of_solutions, 10, 5, 2, 1, neighborhood_function, fitness_function)
+    alg = BeesAlgorithm(w, no_of_solutions, good_n, elite_n, good_sols, elite_sols, neighborhood_function, fitness_function)
     best_generated_solution, fitness_history = alg.run(iteration_no, sols)
 
-    plot_history(fitness_history)
+    # from plotter import plot_history
+    # plot_history(fitness_history)
 
     print("Best solution of all: ", best_generated_solution, " fitness: ", fitness_function(w, best_generated_solution))
 
 
 if __name__ == '__main__':
-
     main()
-
-    # import cProfile
-    # stats = cProfile.run('main()', sort=2)
